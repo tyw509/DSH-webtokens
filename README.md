@@ -2,19 +2,19 @@
 
 把已登录的 DeepSeek 网页作为算力接入 **DeepSeek Harness（DSH）** 的模型菜单，让 Harness 在本机完成工具调用、多轮任务、验证与修复。
 
-本仓库是第三方桥接插件。稳定核心来自 `82440ec209d50d5e8063119cc5e19c84ac9f0ebc`，DSH 插件 **0.2.15**，Chrome 扩展 **0.2.19**。当前仅支持DeepSeek网页，其他模型网页正在验证中。
+本仓库是第三方桥接插件。稳定核心来自 `82440ec209d50d5e8063119cc5e19c84ac9f0ebc`，DSH 插件 **0.2.15**，Chrome 扩展 **0.2.19**。当前仅支持 DeepSeek 网页，其他模型网页正在验证中。
 
 ![DeepSeek 网页桥接插件封面](assets/deepseek-web-bridge-cover.png)
 
+## 系统要求
+
+- **Node.js** 24+
+- **pnpm** 或 npm
+- **Chrome**（Chrome 扩展运行环境）
+- **DeepSeek 网页账号**（已登录，可正常使用的账号）
+- **DSH** 桌面版或 Web 版（CLI 版本 `0.1.5-rc.1` 及以上）
+
 ## 安装
-
-需要 Node.js 24+、pnpm、Chrome，以及可以正常登录使用的 DeepSeek 网页账号。已验证的 DSH CLI 版本为 `0.1.5-rc.1`。下列命令在终端执行。
-
-如果尚未安装 DSH：
-
-```sh
-npm install -g pnpm @deepseek-ai/dsh@0.1.5-rc.1
-```
 
 ### Web 版（浏览器 UI）
 
@@ -27,14 +27,13 @@ dsh plugin --profile web exec dsh-web-bridge setup
 
 ### Desktop 版（桌面应用）
 
-桌面版不支持 CLI 管理插件，需手动将插件添加至 profile：
+桌面版不支持 CLI 管理插件，需手动配置。完整步骤见 [VERIFICATION.md](VERIFICATION.md)。
 
 ```sh
 # 1. 在 profile 的 package.json 中添加依赖
-dsh-web-bridge: "file:E:/gitPrj/DSH-webtokens"
+"dsh-web-bridge": "file:E:/gitPrj/DSH-webtokens"
 
-# 2. 在 cordis.patch.yml 中注册 bundle
-# --- dsh-web-bridge (auto-generated; do not edit) ---
+# 2. 在 cordis.patch.yml 中注册 bundle（token 由 setup 生成）
 - insert:
     - id: deepseek-web-bridge
       name: dsh-web-bridge
@@ -42,7 +41,6 @@ dsh-web-bridge: "file:E:/gitPrj/DSH-webtokens"
         token: <由 setup 生成>
         auditPath: <profile>/web-bridge/logs/events.jsonl
         port: 3081
-# --- end dsh-web-bridge ---
 
 # 3. 运行 setup 生成本机配对文件
 node node_modules/dsh-web-bridge/bin/dsh-web-bridge.mjs setup --profile-dir <profile-dir>
@@ -51,9 +49,7 @@ node node_modules/dsh-web-bridge/bin/dsh-web-bridge.mjs setup --profile-dir <pro
 # setup 输出中的 web-bridge/chrome 路径
 ```
 
-完整桌面版安装指南见 [VERIFICATION.md](VERIFICATION.md)。
-
-`setup` 会输出一个 **Chrome 扩展目录**，并在当前 DSH profile 内生成本机配对密钥和配置。保留这份目录，不要删除。它位于 profile 的 `web-bridge/chrome` 下，不是仓库中的 `extension` 目录，也不是 `node_modules` 中的目录。
+> **注意：** `setup` 会输出一个 **Chrome 扩展目录**，并在当前 DSH profile 内生成本机配对密钥和配置。保留这份目录，不要删除。它位于 profile 的 `web-bridge/chrome` 下，不是仓库中的 `extension` 目录，也不是 `node_modules` 中的目录。
 
 已有 DSH 的用户应在准备使用的 profile 中安装。如果不是 `web`，请在安装、setup、启动命令中统一替换 profile 名称。手工配置过旧桥接的用户应先备份并迁移旧条目；setup 检测到重复条目会停止，不会替你删除。
 
@@ -71,9 +67,9 @@ dsh web
 
 6. 在 Harness 输入框的模型菜单中选择 **DeepSeek 网页**（`deepseek-web`），再发送任务。不要误选需要 API 配置的 DeepSeek 型号。
 7. 保持 Chrome 运行。扩展自动使用专用网页会话，接收并回传回答；Harness 负责执行本机工具。不要在工作中的专用会话里手动输入或删除消息。
-8. Harness 的 **网页桥接** 面板可查看阶段、推理进度和结果。需要查看实际网页时，点击 **查看网页**，也可以使用 Chrome 扩展弹窗的 **打开桥接网页**。
+8. Web 版 Harness 的 **网页桥接** 面板可查看阶段、推理进度和结果。Desktop 版可在 Chrome 扩展弹窗查看进度。需要查看实际网页时，点击 **查看网页**，也可以使用 Chrome 扩展弹窗的 **打开桥接网页**。
 
-首次建议用一个测试目录发任务：“读取 test.txt，原样复制为 test-copy.txt，再读取副本核对。”检查真实文件和工具执行记录，确认完整链路。
+首次建议用一个测试目录发任务："读取 test.txt，原样复制为 test-copy.txt，再读取副本核对。"检查真实文件和工具执行记录，确认完整链路。
 
 连接检查：
 
@@ -107,13 +103,14 @@ Chrome 扩展 → 已登录的 DeepSeek 网页
 
 更新到指定版本后，再执行一次 setup，然后在 Chrome 扩展卡片上点击 **重新加载**。已打开的旧专用网页需要刷新；先等当前任务结束，再更新。
 
-- **找不到“DeepSeek 网页”：** 确认安装与启动的是同一个 profile，重启 DSH，检查启动错误。setup 本身不会切换默认模型。
+- **找不到"DeepSeek 网页"：** 确认安装与启动的是同一个 profile，重启 DSH，检查启动错误。setup 本身不会切换默认模型。
 - **找不到插件命令：** 确认前面的 add 成功，且通过 `dsh plugin --profile web exec ...` 运行。
 - **3081 端口被占用／配对失败：** 检查是否有另一个 DSH 桥接实例正在运行。本基线扩展固定连接本机 3081，同时只运行一套桥接服务。
-- **等待扩展连接：** 确认加载了 setup 输出的目录、Chrome 正在运行、扩展未关闭。直接加载仓库 extension 目录会缺少配对文件。
+- **等待扩展连接：** 确认加载了 setup 输出的目录、Chrome 正在运行、扩展未关闭。直接加载仓库 `extension` 目录会缺少配对文件。
 - **网页等待登录／验证：** 点击查看网页，手动完成登录或验证，再按界面提示继续或重新提交失败任务。
 - **后台停滞：** 点击查看网页确认实际进度；不要重复手动发送输入框内容。网页改版可能需要更新适配。
 - **参数或正文校验失败：** 查看面板中的具体错误。插件会停止不确定调用，不会把未验证的内容当作成功结果。
+- **桌面版桥接进度卡在"等待专用网页"**：在 Chrome 中重新加载扩展（`chrome://extensions` → 点击扩展卡片的"重载"按钮），或关闭扩展再重新开启。
 
 日志保存在 profile 的 `web-bridge/logs/events.jsonl`。密钥、`local-config.json`、profile 配置和日志属于本机文件，不要上传到公开仓库。发到 DeepSeek 的上下文包含任务所需的文件内容和工具结果，因此只在适合发送给该网页服务的项目中使用。
 
@@ -129,3 +126,37 @@ npm pack
 ```
 
 实际安装与运行检查见 [VERIFICATION.md](VERIFICATION.md)。
+
+## 项目结构
+
+```
+DSH-webtokens/
+├── bin/                          # CLI 工具入口（setup/doctor）
+│   └── dsh-web-bridge.mjs
+├── extension/                    # Chrome 扩展源码
+│   ├── manifest.json             # 扩展清单（MV3）
+│   ├── background.js             # Service Worker（任务轮询）
+│   ├── content.js                # 网页内容注入
+│   ├── page.js                   # 页面状态解析
+│   ├── records.js                # 工具调用记录协议
+│   ├── repair.js                 # 格式修复
+│   ├── inspect.js                # 只读检查
+│   ├── tabs.js                   # 标签页管理
+│   ├── render-clock.js           # 页面渲染计时
+│   └── popup.html/js             # 扩展弹窗
+├── plugins/dsh-web-bridge/       # DSH 插件核心
+│   ├── index.js                  # 插件入口（LLM 适配器）
+│   ├── broker.js                 # 本地 HTTP 服务器
+│   ├── protocol.js               # 传输协议
+│   ├── context.js                # 上下文续接
+│   ├── progress.js               # 进度流式输出
+│   ├── remote.js                 # 远程桥接模式
+│   ├── history.js                # 审计日志恢复
+│   ├── panel.js                  # Web 面板接口
+│   └── package.json              # 插件包配置
+├── tests/                        # 回归测试（86 项）
+├── scripts/                      # 验证脚本
+├── package.json
+├── SOURCE.json                   # 源码完整性校验
+└── README.md
+```
