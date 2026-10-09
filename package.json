@@ -7,7 +7,6 @@
   "exports": {
     ".": "./plugins/dsh-web-bridge/index.js",
     "./package.json": "./package.json",
-    "./client": "./plugins/dsh-web-bridge/client.js",
     "./cordis.patch.yml": "./plugins/dsh-web-bridge/cordis.patch.yml"
   },
   "bin": {
@@ -34,13 +33,6 @@
   "dsh": {
     "bundle": {
       "patch": "./plugins/dsh-web-bridge/cordis.patch.yml"
-    },
-    "client": {
-      "inject": [
-        "@deepseek-ai/dsh-client-ui-sidebar",
-        "@deepseek-ai/dsh-client-ui-renderer"
-      ],
-      "platform": "web"
     }
   },
   "dependencies": {

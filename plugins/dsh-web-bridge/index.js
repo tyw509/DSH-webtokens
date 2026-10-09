@@ -6,7 +6,6 @@ import { parseReply, replyChunks, replyMetadata, OFFICIAL_CONTEXT_TOKENS } from 
 import { ContextContinuation } from './context.js';
 import { submitRemote } from './remote.js';
 import { streamProgress } from './progress.js';
-import { registerPanel } from './panel.js';
 import { restoreLastPanel } from './history.js';
 
 export const name = 'deepseek-web-bridge';
@@ -66,7 +65,6 @@ export async function apply(ctx, config) {
   }
   const broker = new Broker({ ...config, onEvent: event => { if (config.auditPath) appendFile(config.auditPath, JSON.stringify(event) + '\n').catch(() => {}); } });
   broker.lastPanel = await restoreLastPanel(config.auditPath);
-  ctx.inject(['connection', 'webServer'], scope => registerPanel(scope, broker));
   await ctx.effect(async () => { await broker.start(); return () => broker.close(); }, 'deepseek-web: local broker');
   ctx.llm.registerAdapter(['deepseek-web'], new WebAdapter(broker, config));
 }
