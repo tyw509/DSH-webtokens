@@ -16,12 +16,42 @@
 npm install -g pnpm @deepseek-ai/dsh@0.1.5-rc.1
 ```
 
+### Web 版（浏览器 UI）
+
 通过 DSH 官方插件入口安装本仓库：
 
 ```sh
 dsh plugin --profile web add "git+https://github.com/xinyuquan985-coder/DSH-webtokens.git#v0.2.15-deepseek"
 dsh plugin --profile web exec dsh-web-bridge setup
 ```
+
+### Desktop 版（桌面应用）
+
+桌面版不支持 CLI 管理插件，需手动将插件添加至 profile：
+
+```sh
+# 1. 在 profile 的 package.json 中添加依赖
+dsh-web-bridge: "file:E:/gitPrj/DSH-webtokens"
+
+# 2. 在 cordis.patch.yml 中注册 bundle
+# --- dsh-web-bridge (auto-generated; do not edit) ---
+- insert:
+    - id: deepseek-web-bridge
+      name: dsh-web-bridge
+      config:
+        token: <由 setup 生成>
+        auditPath: <profile>/web-bridge/logs/events.jsonl
+        port: 3081
+# --- end dsh-web-bridge ---
+
+# 3. 运行 setup 生成本机配对文件
+node node_modules/dsh-web-bridge/bin/dsh-web-bridge.mjs setup --profile-dir <profile-dir>
+
+# 4. 在 Chrome 加载扩展目录
+# setup 输出中的 web-bridge/chrome 路径
+```
+
+完整桌面版安装指南见 [VERIFICATION.md](VERIFICATION.md)。
 
 `setup` 会输出一个 **Chrome 扩展目录**，并在当前 DSH profile 内生成本机配对密钥和配置。保留这份目录，不要删除。它位于 profile 的 `web-bridge/chrome` 下，不是仓库中的 `extension` 目录，也不是 `node_modules` 中的目录。
 
